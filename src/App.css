@@ -1,0 +1,235 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+}
+
+.stat-card.gain {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.stat-card.loss {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stat-card.gain .stat-value {
+  color: #15803d;
+}
+
+.stat-card.loss .stat-value {
+  color: #991b1b;
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  color: #1a1a1a;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead {
+  background: #f9f9f9;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #666;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+input {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  width: 70px;
+  text-align: right;
+}
+
+input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.ticker {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-fuerte {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-débil {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.status-análisis {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.gain-text {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.loss-text {
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.chart-section {
+  margin: 32px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.info-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: #1e40af;
+  line-height: 1.5;
+  margin-top: 24px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #f9f9f9;
+  border-color: #ccc;
+}
+
+button.primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+button.primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #999;
+  margin-top: 16px;
+}
