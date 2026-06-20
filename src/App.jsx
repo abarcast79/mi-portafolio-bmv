@@ -41,7 +41,7 @@ export default function PortafolioDashboard() {
     setLoading(true);
     setSyncMessage('Sincronizando...');
     try {
-      const response = await fetch('/api/notion');
+      const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion');
       if (!response.ok) {
         throw new Error('Error al conectar con Notion');
       }
