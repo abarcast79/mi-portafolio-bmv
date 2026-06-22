@@ -10,7 +10,7 @@ const twilioClient = twilio(
 // Base de datos histórica (en memoria, temporal)
 let priceHistory = {};
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res)  {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Only GET allowed" });
   }
