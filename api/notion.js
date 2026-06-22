@@ -1,5 +1,5 @@
-const { Client } = require("@notionhq/client");
-const twilio = require("twilio");
+import { Client } from "@notionhq/client";
+import twilio from "twilio";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const twilioClient = twilio(
@@ -7,16 +7,14 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
-// Base de datos histórica (en memoria, temporal)
 let priceHistory = {};
 
-module.exports = async function handler(req, res)  {
+export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Only GET allowed" });
   }
 
   try {
-    // 1️⃣ Leer posiciones de Notion
     const response = await notion.databases.query({
       database_id: process.env.NOTION_DATABASE_ID,
     });
@@ -26,22 +24,17 @@ module.exports = async function handler(req, res)  {
       return {
         id: page.id,
         ticker: props.Ticker?.title?.[0]?.plain_text || "N/A",
-        precioActual:
-          parseFloat(props["Precio Actual"]?.number) || 0,
-        precioPromedio:
-          parseFloat(props["Precio Promedio"]?.number) || 0,
+        precioActual: parseFloat(props["Precio Actual"]?.number) || 0,
+        precioPromedio: parseFloat(props["Precio Promedio"]?.number) || 0,
       };
     });
 
-    // 2️⃣ Comparar precios y detectar cambios >3%
     for (const pos of positions) {
       const oldPrice = priceHistory[pos.ticker];
 
       if (oldPrice && oldPrice !== pos.precioActual) {
-        const changePercent =
-          ((pos.precioActual - oldPrice) / oldPrice) * 100;
+        const changePercent = ((pos.precioActual - oldPrice) / oldPrice) * 100;
 
-        // 3️⃣ Si cambio >3%, enviar WhatsApp
         if (Math.abs(changePercent) > 3) {
           const direction = changePercent > 0 ? "📈 SUBIÓ" : "📉 BAJÓ";
           const message = `
@@ -56,7 +49,6 @@ Actual: $${pos.precioActual.toFixed(2)}
 Verifica en: https://mi-portafolio-bmv.vercel.app/
           `.trim();
 
-          // Enviar por WhatsApp
           await twilioClient.messages.create({
             from: process.env.TWILIO_WHATSAPP_FROM,
             to: process.env.TWILIO_WHATSAPP_TO,
@@ -67,11 +59,9 @@ Verifica en: https://mi-portafolio-bmv.vercel.app/
         }
       }
 
-      // Actualizar historial
       priceHistory[pos.ticker] = pos.precioActual;
     }
 
-    // 4️⃣ Retornar datos al frontend
     res.status(200).json({
       success: true,
       positions,
