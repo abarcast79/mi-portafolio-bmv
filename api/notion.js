@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const NOTION_TOKEN = process.env.NOTION_TOKEN;
-  const DATABASE_ID = '5b3da26b-c58b-46b7-8f2c-d9a55e1aba47';
+  const DATABASE_ID = '82d7318bf1c146cc9129961b7bb36dc7';
 
   if (!NOTION_TOKEN) {
     return res.status(400).json({ error: 'NOTION_TOKEN no configurado' });
