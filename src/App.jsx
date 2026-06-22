@@ -37,41 +37,42 @@ export default function PortafolioDashboard() {
   };
 
   // Sincronizar desde Notion
-  const syncFromNotion = async () => {
-    setLoading(true);
-    setSyncMessage('Sincronizando...');
-    try {
-      const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion');
-      if (!response.ok) {
-        throw new Error('Error al conectar con Notion');
-      }
-      const notionData = response.json().then(data => {
-        // Fusionar datos de Notion con los existentes (mantener localStorage como base)
-        const updatedPositions = positions.map(pos => {
-          const notionPos = data.find(n => n.ticker === pos.ticker);
-          if (notionPos) {
-            return {
-              ...pos,
-              cantidad: notionPos.cantidad,
-              precioCosto: notionPos.precioCosto,
-              precioActual: notionPos.precioActual,
-              estado: notionPos.estado,
-            };
-          }
-          return pos;
-        });
-        setPositions(updatedPositions);
-        setSyncMessage('✅ Sincronizado desde Notion');
-        setTimeout(() => setSyncMessage(''), 3000);
-      });
-    } catch (error) {
-      console.error('Error sincronizando:', error);
-      setSyncMessage('❌ Error al sincronizar');
-      setTimeout(() => setSyncMessage(''), 3000);
-    } finally {
-      setLoading(false);
+const syncFromNotion = async () => {
+  setLoading(true);
+  setSyncMessage('Sincronizando...');
+  try {
+    const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion');
+    if (!response.ok) {
+      throw new Error('Error al conectar con Notion');
     }
-  };
+    
+    const data = await response.json(); // ← Aquí el await
+    const notionPositions = data.positions; // ← Acceder a .positions
+
+    // Fusionar datos de Notion con los existentes
+    const updatedPositions = positions.map(pos => {
+      const notionPos = notionPositions.find(n => n.ticker === pos.ticker);
+      if (notionPos) {
+        return {
+          ...pos,
+          precioActual: notionPos.precioActual,
+          precioPromedio: notionPos.precioPromedio,
+        };
+      }
+      return pos;
+    });
+    
+    setPositions(updatedPositions);
+    setSyncMessage('✅ Sincronizado desde Notion');
+    setTimeout(() => setSyncMessage(''), 3000);
+  } catch (error) {
+    console.error('Error sincronizando:', error);
+    setSyncMessage('❌ Error al sincronizar');
+    setTimeout(() => setSyncMessage(''), 3000);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handlePrecioChange = (id, field, value) => {
     setPositions(positions.map(pos =>
