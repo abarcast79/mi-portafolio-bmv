@@ -8,12 +8,21 @@ const twilioClient = twilio(
 let priceHistory = {};
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Only GET allowed" });
+  // GET: Leer desde Notion
+  if (req.method === "GET") {
+    return handleGet(req, res);
   }
 
+  // POST: Escribir a Notion
+  if (req.method === "POST") {
+    return handlePost(req, res);
+  }
+
+  res.status(405).json({ error: "Only GET and POST allowed" });
+}
+
+async function handleGet(req, res) {
   try {
-    // Leer desde Notion API con fetch
     const notionRes = await fetch(
       `https://api.notion.com/v1/databases/${process.env.NOTION_DATABASE_ID}/query`,
       {
@@ -83,9 +92,61 @@ Verifica en: https://mi-portafolio-bmv.vercel.app/
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error en GET:", error);
     res.status(500).json({
       error: error.message || "Error en sincronización",
+    });
+  }
+}
+
+async function handlePost(req, res) {
+  try {
+    const { positions } = req.body;
+
+    if (!positions || !Array.isArray(positions)) {
+      return res.status(400).json({ error: "Invalid positions array" });
+    }
+
+    // Actualizar cada posición en Notion
+    const updates = positions.map((pos) =>
+      fetch(`https://api.notion.com/v1/pages/${pos.id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
+          "Notion-Version": "2022-06-28",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          properties: {
+            "Precio Actual": {
+              number: pos.precioActual,
+            },
+            "Precio Promedio": {
+              number: pos.precioPromedio,
+            },
+          },
+        }),
+      })
+    );
+
+    const results = await Promise.all(updates);
+
+    // Verificar que todas las actualizaciones fueron exitosas
+    for (const result of results) {
+      if (!result.ok) {
+        throw new Error(`Notion update failed: ${result.status}`);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      updated: positions.length,
+      message: "✅ Cambios guardados en Notion",
+    });
+  } catch (error) {
+    console.error("Error en POST:", error);
+    res.status(500).json({
+      error: error.message || "Error al actualizar Notion",
     });
   }
 }
