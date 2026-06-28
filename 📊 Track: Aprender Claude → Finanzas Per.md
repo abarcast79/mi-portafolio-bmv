@@ -204,7 +204,7 @@ LinkedIn (servicios de asesoría)
 
 NOTAS IMPORTANTES
 Tokens & Secrets
-Notion Token: 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 (en Vercel ✅)
+Notion Token: [HIDDEN - stored securely in Vercel]
 NUNCA compartir públicamente
 NUNCA commitear en GitHub
 URLs Clave

@@ -89,6 +89,7 @@ export default function PortafolioDashboard() {
         if (notionPos) {
           return {
             ...pos,
+            id: notionPos.id,
             precioActual: notionPos.precioActual,
             precioCosto: notionPos.precioPromedio,
           };
