@@ -47,14 +47,16 @@ const saveToNotion = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        positions: positions.map(pos => ({
-          id: pos.id,
-          ticker: pos.ticker,
-          precioActual: pos.precioActual,
-          precioPromedio: pos.precioPromedio,
-        })),
-      }),
+     body: JSON.stringify({
+  properties: {
+    "Precio Actual": {
+      number: pos.precioActual,
+    },
+    "Precio Costo": {
+      number: pos.precioCosto,
+    },
+  },
+}),
     });
 
     if (!response.ok) {
