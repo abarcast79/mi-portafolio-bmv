@@ -38,52 +38,87 @@ export default function PortafolioDashboard() {
     localStorage.setItem('portafolio_bmv_timestamp', now);
   };
 
+  // Guardar cambios a Notion
+  const saveToNotion = async (positionsToSave = positions) => {
+    try {
+      const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          positions: positionsToSave.map(pos => ({
+            id: pos.id,
+            ticker: pos.ticker,
+            precioActual: pos.precioActual,
+            precioPromedio: pos.precioCosto,
+          })),
+        }),
+      });
 
-// Guardar cambios a Notion
-const saveToNotion = async () => {
-  try {
-    const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-     body: JSON.stringify({
-  properties: {
-    "Precio Actual": {
-      number: pos.precioActual,
-    },
-    "Precio Costo": {
-      number: pos.precioCosto,
-    },
-  },
-}),
-    });
+      if (!response.ok) {
+        throw new Error(`Error guardando en Notion: ${response.status}`);
+      }
 
-    if (!response.ok) {
-      throw new Error('Error guardando en Notion');
+      const data = await response.json();
+      console.log('✅ Guardado en Notion:', data);
+      setSyncMessage('✅ Guardado en Notion');
+      setTimeout(() => setSyncMessage(''), 3000);
+    } catch (error) {
+      console.error('Error en saveToNotion:', error);
+      setSyncMessage('❌ Error al guardar en Notion');
+      setTimeout(() => setSyncMessage(''), 3000);
     }
+  };
 
-    const data = await response.json();
-    setSyncMessage('✅ Guardado en Notion');
-    setTimeout(() => setSyncMessage(''), 3000);
-  } catch (error) {
-    console.error('Error:', error);
-    setSyncMessage('❌ Error al guardar en Notion');
-    setTimeout(() => setSyncMessage(''), 3000);
-  }
-};
+  // Sincronizar desde Notion
+  const syncFromNotion = async () => {
+    setLoading(true);
+    setSyncMessage('Sincronizando...');
+    try {
+      const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion');
+      if (!response.ok) {
+        throw new Error('Error al conectar con Notion');
+      }
 
-const handlePrecioChange = (id, field, value) => {
-  setPositions(positions.map(pos =>
-    pos.id === id ? { ...pos, [field]: parseFloat(value) || 0 } : pos
-  ));
-  
-  // Guardar a Notion automático (sin botón)
-  // Pequeño delay para evitar demasiadas solicitudes
-  setTimeout(() => {
-    saveToNotion();
-  }, 500);
-};
+      const data = await response.json();
+      const notionPositions = data.positions;
+
+      const updatedPositions = positions.map(pos => {
+        const notionPos = notionPositions.find(n => n.ticker === pos.ticker);
+        if (notionPos) {
+          return {
+            ...pos,
+            precioActual: notionPos.precioActual,
+            precioCosto: notionPos.precioPromedio,
+          };
+        }
+        return pos;
+      });
+
+      setPositions(updatedPositions);
+      setSyncMessage('✅ Sincronizado desde Notion');
+      setTimeout(() => setSyncMessage(''), 3000);
+    } catch (error) {
+      console.error('Error sincronizando:', error);
+      setSyncMessage('❌ Error al sincronizar');
+      setTimeout(() => setSyncMessage(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrecioChange = (id, field, value) => {
+    const updatedPositions = positions.map(pos =>
+      pos.id === id ? { ...pos, [field]: parseFloat(value) || 0 } : pos
+    );
+    setPositions(updatedPositions);
+
+    // Guardar a Notion automático con pequeño delay
+    setTimeout(() => {
+      saveToNotion(updatedPositions);
+    }, 500);
+  };
 
   const stats = useMemo(() => {
     let totalInvertido = 0;
@@ -253,14 +288,14 @@ const handlePrecioChange = (id, field, value) => {
 
       <div className="info-box">
         <strong>💡 Cómo funciona:</strong><br />
-        • Edita precios en Notion o aquí (ambos se sincronizan)<br />
+        • Edita precios aquí → se guardan automático en Notion (bidireccional)<br />
         • Presiona 🔄 para traer cambios desde Notion<br />
         • Datos guardados automáticamente en localStorage<br />
         • Listo para Sesión 3: Alertas en WhatsApp
       </div>
 
       <div className="button-group">
-        <button className="primary" onClick={saveToNotion} disabled={loading}>
+        <button className="primary" onClick={syncFromNotion} disabled={loading}>
           {loading ? '⏳ Sincronizando...' : '🔄 Sincronizar desde Notion'}
         </button>
         <button onClick={exportarDatos}>📥 Descargar datos</button>
