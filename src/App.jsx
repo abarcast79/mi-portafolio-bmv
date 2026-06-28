@@ -5,10 +5,12 @@ import './App.css';
 export default function PortafolioDashboard() {
   const [positions, setPositions] = useState([
     { id: 'TSLA.MX', ticker: 'TSLA.MX', cantidad: 2, precioCosto: 245, precioActual: 268, estado: 'fuerte' },
-    { id: 'NVDA.MX', ticker: 'NVDA.MX', cantidad: 2, precioCosto: 118, precioActual: 135, estado: 'fuerte' },
+    { id: 'NVDA.MX', ticker: 'NVDA.MX', cantidad: 3, precioCosto: 118, precioActual: 135, estado: 'fuerte' },
     { id: 'INTC.MX', ticker: 'INTC.MX', cantidad: 1, precioCosto: 52, precioActual: 48, estado: 'débil' },
     { id: 'AMZN.MX', ticker: 'AMZN.MX', cantidad: 1, precioCosto: 185, precioActual: 192, estado: 'fuerte' },
     { id: 'SPCX', ticker: 'SPCX', cantidad: 0, precioCosto: 0, precioActual: 165, estado: 'análisis' },
+    { id: 'Equate', ticker: 'Equate', cantidad: 1, precioCosto: 6556, precioActual: 6367.59, estado: 'fuerte' },
+    { id: 'FI', ticker: 'FI', cantidad: 1, precioCosto: 102668.5, precioActual: 102684.71, estado: 'fuerte' },
   ]);
 
   const [timestamp, setTimestamp] = useState('');
@@ -36,49 +38,50 @@ export default function PortafolioDashboard() {
     localStorage.setItem('portafolio_bmv_timestamp', now);
   };
 
-  // Sincronizar desde Notion
-const syncFromNotion = async () => {
-  setLoading(true);
-  setSyncMessage('Sincronizando...');
-  try {
-    const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion');
-    if (!response.ok) {
-      throw new Error('Error al conectar con Notion');
-    }
-    
-    const data = await response.json(); // ← Aquí el await
-    const notionPositions = data.positions; // ← Acceder a .positions
 
-    // Fusionar datos de Notion con los existentes
-    const updatedPositions = positions.map(pos => {
-      const notionPos = notionPositions.find(n => n.ticker === pos.ticker);
-      if (notionPos) {
-        return {
-          ...pos,
-          precioActual: notionPos.precioActual,
-          precioPromedio: notionPos.precioPromedio,
-        };
-      }
-      return pos;
+// Guardar cambios a Notion
+const saveToNotion = async () => {
+  try {
+    const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        positions: positions.map(pos => ({
+          id: pos.id,
+          ticker: pos.ticker,
+          precioActual: pos.precioActual,
+          precioPromedio: pos.precioPromedio,
+        })),
+      }),
     });
-    
-    setPositions(updatedPositions);
-    setSyncMessage('✅ Sincronizado desde Notion');
+
+    if (!response.ok) {
+      throw new Error('Error guardando en Notion');
+    }
+
+    const data = await response.json();
+    setSyncMessage('✅ Guardado en Notion');
     setTimeout(() => setSyncMessage(''), 3000);
   } catch (error) {
-    console.error('Error sincronizando:', error);
-    setSyncMessage('❌ Error al sincronizar');
+    console.error('Error:', error);
+    setSyncMessage('❌ Error al guardar en Notion');
     setTimeout(() => setSyncMessage(''), 3000);
-  } finally {
-    setLoading(false);
   }
 };
 
-  const handlePrecioChange = (id, field, value) => {
-    setPositions(positions.map(pos =>
-      pos.id === id ? { ...pos, [field]: parseFloat(value) || 0 } : pos
-    ));
-  };
+const handlePrecioChange = (id, field, value) => {
+  setPositions(positions.map(pos =>
+    pos.id === id ? { ...pos, [field]: parseFloat(value) || 0 } : pos
+  ));
+  
+  // Guardar a Notion automático (sin botón)
+  // Pequeño delay para evitar demasiadas solicitudes
+  setTimeout(() => {
+    saveToNotion();
+  }, 500);
+};
 
   const stats = useMemo(() => {
     let totalInvertido = 0;
@@ -255,7 +258,7 @@ const syncFromNotion = async () => {
       </div>
 
       <div className="button-group">
-        <button className="primary" onClick={syncFromNotion} disabled={loading}>
+        <button className="primary" onClick={saveToNotion} disabled={loading}>
           {loading ? '⏳ Sincronizando...' : '🔄 Sincronizar desde Notion'}
         </button>
         <button onClick={exportarDatos}>📥 Descargar datos</button>
