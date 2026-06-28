@@ -121,7 +121,7 @@ async function handlePost(req, res) {
             "Precio Actual": {
               number: pos.precioActual,
             },
-            "Precio Promedio": {
+            "Precio Costo": {
               number: pos.precioPromedio,
             },
           },
