@@ -19,12 +19,32 @@ export default function PortafolioDashboard() {
 
   // Cargar datos desde localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('portafolio_bmv_vite');
-    if (saved) {
-      setPositions(JSON.parse(saved));
+  const loadData = async () => {
+    try {
+      // Traer datos frescos de Notion al cargar
+      const response = await fetch('https://mi-portafolio-bmv.vercel.app/api/notion');
+      if (response.ok) {
+        const data = await response.json();
+        setPositions(data.positions);
+      } else {
+        // Si falla Notion, usar localStorage
+        const saved = localStorage.getItem('portafolio_bmv_vite');
+        if (saved) {
+          setPositions(JSON.parse(saved));
+        }
+      }
+    } catch (error) {
+      // Fallback a localStorage
+      const saved = localStorage.getItem('portafolio_bmv_vite');
+      if (saved) {
+        setPositions(JSON.parse(saved));
+      }
     }
     updateTimestamp();
-  }, []);
+  };
+  
+  loadData();
+}, []);
 
   // Guardar datos en localStorage siempre que cambien
   useEffect(() => {
