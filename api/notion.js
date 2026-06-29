@@ -103,6 +103,9 @@ async function handlePost(req, res) {
   try {
     const { positions } = req.body;
 
+    // LOG para ver qué recibimos
+    console.log('POST recibido. Positions:', JSON.stringify(positions, null, 2));
+
     if (!positions || !Array.isArray(positions)) {
       return res.status(400).json({ error: "Invalid positions array" });
     }
